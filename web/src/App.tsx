@@ -7,15 +7,38 @@ import {
   RapierRigidBody
 } from "@react-three/rapier";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import { v4 as uuidv4 } from 'uuid';
 
 const YEET_POWER = 69;
 const ASTERAI_APP_ID = "a3d9cb1d-d70e-455b-b329-dc208026fb77";
 const ASTERAI_PUBLIC_QUERY_KEY = "d466c3d6-b54d-4459-9556-45b6c2df899f";
+const CONVERSATION_ID = uuidv4();
 
 const client = new AsteraiClient({
   appId: ASTERAI_APP_ID,
   queryKey: ASTERAI_PUBLIC_QUERY_KEY,
-  // appProtos: [],
+  appProtos: [`
+    syntax = "proto3";
+
+    service YeetTheCube {
+      // Yeets the current cube in the three.js scene.
+      // For this to work a cube needs to exist in the scene.
+      // But it's just a cube, just assume it exists and yeet it anyway. #yeetlife
+      rpc yeetTheCurrentCube(Empty) returns (YeetOutput);
+      // Initialises the scene with a cube. Can be used for re-initialisations.
+      rpc initialiseTheScene(Empty) returns (InitOutput);
+    }
+    
+    message Empty {}
+    
+    message YeetOutput {
+      string system_message = 1;
+    }
+    
+    message InitOutput {
+      string system_message = 1;
+    }
+  `],
 });
 
 export const App = () => {
@@ -99,11 +122,24 @@ const executeQuery = async (
   if (query.length > 1000) {
     query = query.substring(0, 1000);
   }
-  const response = await client.query({ query });
+  const response = await client.query({
+    query,
+    conversationId: CONVERSATION_ID
+  });
   let llmResponse = "";
   response.onToken((t) => {
     llmResponse += t;
     setResponse(llmResponse);
+  });
+  response.onPluginOutput(output => {
+    switch (output.name) {
+      case "YeetOutput":
+        yeet();
+        return;
+      case "InitOutput":
+        init();
+        return;
+    }
   });
 };
 
