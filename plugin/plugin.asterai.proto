@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+service YeetTheCube {
+  // Yeets the current cube in the three.js scene.
+  // For this to work a cube needs to exist in the scene.
+  // But it's just a cube, just assume it exists and yeet it anyway. #yeetlife
+  rpc yeetTheCurrentCube(Empty) returns (YeetOutput);
+  // Initialises the scene with a cube. Can be used for re-initialisations.
+  rpc initialiseTheScene(Empty) returns (InitOutput);
+}
+
+message Empty {}
+
+message YeetOutput {
+  string system_message = 1;
+}
+
+message InitOutput {
+  string system_message = 1;
+}
