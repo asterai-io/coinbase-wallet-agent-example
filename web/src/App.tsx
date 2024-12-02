@@ -1,3 +1,4 @@
+import { AsteraiClient } from "@asterai/client";
 import { OrbitControls } from "@react-three/drei";
 import {Canvas, useFrame} from "@react-three/fiber";
 import {
@@ -8,6 +9,14 @@ import {
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 const YEET_POWER = 69;
+const ASTERAI_APP_ID = "a3d9cb1d-d70e-455b-b329-dc208026fb77";
+const ASTERAI_PUBLIC_QUERY_KEY = "d466c3d6-b54d-4459-9556-45b6c2df899f";
+
+const client = new AsteraiClient({
+  appId: ASTERAI_APP_ID,
+  queryKey: ASTERAI_PUBLIC_QUERY_KEY,
+  // appProtos: [],
+});
 
 export const App = () => {
   const [initFlag, setInitFlag] = useState(false);
@@ -32,25 +41,43 @@ type QueryHandleProps = {
 }
 
 const QueryHandler = ({ init, yeet }: QueryHandleProps) => {
+  const [response, setResponse] = useState("...");
+  const [input, setInput] = useState("");
+  const handleSubmit = (e) => {
+    e?.preventDefault?.();
+    setInput("");
+    setResponse("...");
+    executeQuery(input, init, yeet, setResponse).catch(console.error);
+  };
   return (
     <header className="p-14 h-80 bg-neutral-800 relative">
       <div className="w-full flex items-center justify-center relative">
-        <input
-          className="
+        <form
+          className="w-full"
+          onSubmit={handleSubmit}
+        >
+          <input
+            className="
               p-6 text-3xl rounded-xl w-full bg-slate-800 border-2
               border-slate-700 hover:border-slate-600 placeholder-slate-700
             "
-          type="text"
-          placeholder="your yeet request here..."
-        />
+            type="text"
+            placeholder="your yeet request here..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+          />
+        </form>
         <span className="absolute bottom-24 text-slate-400 right-0">
           press enter/submit to send
         </span>
       </div>
-      <div className="w-full flex items-center justify-center mt-14">
-        <h1 className="text-xl">...</h1>
+      <div className="w-full flex items-center justify-center mt-8">
+        <h1
+          className="text-xl overflow-y-auto"
+          style={{ height: "73px" }}
+        >{ response }</h1>
       </div>
-      <div className="w-full flex justify-center mt-14 text-yellow-400/60">
+      <div className="w-full flex justify-center mt-4 text-yellow-400/60">
         <a
           className="text-inherit no-underline"
           href="https://asterai.io"
@@ -62,6 +89,23 @@ const QueryHandler = ({ init, yeet }: QueryHandleProps) => {
     </header>
   );
 }
+
+const executeQuery = async (
+  query: string,
+  init: () => void,
+  yeet: () => void,
+  setResponse: (v: string) => void,
+) => {
+  if (query.length > 1000) {
+    query = query.substring(0, 1000);
+  }
+  const response = await client.query({ query });
+  let llmResponse = "";
+  response.onToken((t) => {
+    llmResponse += t;
+    setResponse(llmResponse);
+  });
+};
 
 const Scene = (props: YeeterProps) => {
   return (
