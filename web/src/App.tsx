@@ -1,11 +1,37 @@
 import { OrbitControls } from "@react-three/drei";
 import {Canvas, useFrame} from "@react-three/fiber";
-import {InstancedRigidBodies, Physics } from "@react-three/rapier";
-import {useMemo, useRef, useState} from "react";
+import {
+  InstancedRigidBodies,
+  Physics,
+  RapierRigidBody
+} from "@react-three/rapier";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 const YEET_POWER = 69;
 
-const QueryHandler = () => {
+export const App = () => {
+  const [initFlag, setInitFlag] = useState(false);
+  const [yeetFlag, setYeetFlag] = useState(false);
+  const init = useCallback(() => {
+    setInitFlag(v => !v);
+  });
+  const yeet = useCallback(() => {
+    setYeetFlag(v => !v);
+  });
+  return (
+    <div className="w-full text-neutral-200">
+      <QueryHandler init={init} yeet={yeet} />
+      <Scene initFlag={initFlag} yeetFlag={yeetFlag} />
+    </div>
+  )
+};
+
+type QueryHandleProps = {
+  init: () => void;
+  yeet: () => void;
+}
+
+const QueryHandler = ({ init, yeet }: QueryHandleProps) => {
   return (
     <header className="p-14 h-80 bg-neutral-800 relative">
       <div className="w-full flex items-center justify-center relative">
@@ -37,7 +63,7 @@ const QueryHandler = () => {
   );
 }
 
-const Scene = () => {
+const Scene = (props: YeeterProps) => {
   return (
     <div
       className="absolute right-0 bottom-0 left-0"
@@ -63,7 +89,7 @@ const Scene = () => {
         />
         {/*<Box/>*/}
         <DoubleSidedPlane/>
-        <Experience />
+        <Yeeter {...props} />
       </Canvas>
     </div>
   )
@@ -114,26 +140,23 @@ const DoubleSidedPlane = () => {
   );
 };
 
-export const App = () => {
-  return (
-    <div className="w-full text-neutral-200">
-      <QueryHandler />
-      <Scene />
-    </div>
-  )
-};
-
 const degToRad = (deg: number): number =>
   deg * Math.PI/180;
 
 
-const Experience = () => {
+type YeeterProps = {
+  initFlag: boolean;
+  yeetFlag: boolean;
+}
+
+const Yeeter = ({ initFlag, yeetFlag }: YeeterProps) => {
   const cubes = useRef();
-  const rigidBodies = useRef();
-  const cubesCount = 1;
+  const cubeCount = 1;
+  const [totalYeets, setTotalYeets] = useState(0);
+  const rigidBodies = useRef<(RapierRigidBody | null)>();
   const instances = useMemo(() => {
     const objects = [];
-    for (let i = 0; i < cubesCount; i++) {
+    for (let i = 0; i < cubeCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = Math.random() * 1.25;
       const x = Math.cos(angle) * radius;
@@ -144,9 +167,25 @@ const Experience = () => {
         rotation: [0, 0, 0],
       });
     }
-
     return objects;
-  }, []);
+  }, [initFlag]);
+  useEffect(() => {
+    if (totalYeets === 0 && !yeetFlag) {
+      // Wait for yeet instead of yeeting on first init.
+      return;
+    }
+    const cubeCount = rigidBodies.current.length;
+    const lastCube = rigidBodies.current[cubeCount - 1];
+    lastCube?.applyImpulse(
+      {
+        x: YEET_POWER,
+        y: Math.random() * YEET_POWER / 3,
+        z: YEET_POWER,
+      },
+      true
+    );
+    setTotalYeets(v => v + 1);
+  }, [yeetFlag])
   return (
     <>
       <Physics>
@@ -159,11 +198,15 @@ const Experience = () => {
         >
           <instancedMesh
             ref={cubes}
-            args={[null, null, cubesCount]}
+            args={[null, null, cubeCount]}
             dispose={null}
             onClick={(e) => {
+              if (!rigidBodies.current) {
+                return;
+              }
               e.stopPropagation();
-              rigidBodies.current[e.instanceId].applyImpulse(
+              let rigidBody = rigidBodies.current[e.instanceId];
+              rigidBody?.applyImpulse(
                 {
                   x: YEET_POWER,
                   y: Math.random() * YEET_POWER / 3,
