@@ -102,14 +102,22 @@ const QueryHandler = ({ init, yeet }: QueryHandleProps) => {
           style={{ height: "73px" }}
         >{ response }</h1>
       </div>
-      <div className="w-full flex justify-center mt-4 text-yellow-400/60">
+      <div className="w-full flex justify-center mt-4">
         <a
-          className="text-inherit no-underline"
+          className="text-inherit no-underline text-yellow-400/60"
           href="https://asterai.io"
           target="_blank"
         >
           build your agent with asterai.io
         </a>
+        <span className="mx-3">|</span>
+        <a
+        className="text-inherit no-underline text-neutral-400/60"
+        href="https://github.com/rellfy/yeet-the-cube"
+        target="_blank"
+      >
+        github repo
+      </a>
       </div>
     </header>
   );
