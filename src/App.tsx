@@ -1,6 +1,6 @@
 import { AsteraiClient } from "@asterai/client";
 import { OrbitControls } from "@react-three/drei";
-import {Canvas, useFrame} from "@react-three/fiber";
+import {Canvas} from "@react-three/fiber";
 import {
   InstancedRigidBodies,
   Physics,
@@ -46,10 +46,10 @@ export const App = () => {
   const [yeetFlag, setYeetFlag] = useState(false);
   const init = useCallback(() => {
     setInitFlag(v => !v);
-  });
+  }, []);
   const yeet = useCallback(() => {
     setYeetFlag(v => !v);
-  });
+  }, []);
   return (
     <div className="w-full text-neutral-200">
       <QueryHandler init={init} yeet={yeet} />
@@ -66,8 +66,7 @@ type QueryHandleProps = {
 const QueryHandler = ({ init, yeet }: QueryHandleProps) => {
   const [response, setResponse] = useState("...");
   const [input, setInput] = useState("");
-  const handleSubmit = (e) => {
-    e?.preventDefault?.();
+  const handleSubmit = () => {
     setInput("");
     setResponse("...");
     executeQuery(input, init, yeet, setResponse).catch(console.error);
@@ -77,7 +76,10 @@ const QueryHandler = ({ init, yeet }: QueryHandleProps) => {
       <div className="w-full flex items-center justify-center relative">
         <form
           className="w-full"
-          onSubmit={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
         >
           <input
             className="
@@ -167,40 +169,10 @@ const Scene = (props: YeeterProps) => {
           decay={0.25}
           intensity={Math.PI}
         />
-        {/*<Box/>*/}
         <DoubleSidedPlane/>
         <Yeeter {...props} />
       </Canvas>
     </div>
-  )
-};
-
-const Box = (props) => {
-  // This reference gives us direct access to the THREE.Mesh object
-  const ref = useRef()
-  // Hold state for hovered and clicked events
-  const [hovered, hover] = useState(false)
-  const [clicked, click] = useState(false)
-  // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => {
-    // ref.current.position.x += delta;
-    // ref.current.body.applyImpulse({ x: 2, y: 0, z: 0 })
-    // (ref.current.rotation.x += delta)
-  });
-  // Return the view, these are regular Threejs elements expressed in JSX
-  return (
-    <mesh
-      {...props}
-      ref={ref}
-      scale={clicked ? 1.5 : 1}
-      onClick={(event) => click(!clicked)}
-      onPointerOver={(event) => hover(true)}
-      onPointerOut={(event) => hover(false)}
-      position={[0, 0.5001, 0]}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-    </mesh>
   )
 };
 
@@ -219,9 +191,6 @@ const DoubleSidedPlane = () => {
     </>
   );
 };
-
-const degToRad = (deg: number): number =>
-  deg * Math.PI/180;
 
 
 type YeeterProps = {
@@ -254,7 +223,9 @@ const Yeeter = ({ initFlag, yeetFlag }: YeeterProps) => {
       // Wait for yeet instead of yeeting on first init.
       return;
     }
+    //@ts-ignore
     const cubeCount = rigidBodies.current.length;
+    //@ts-ignore
     const lastCube = rigidBodies.current[cubeCount - 1];
     lastCube?.applyImpulse(
       {
@@ -273,18 +244,20 @@ const Yeeter = ({ initFlag, yeetFlag }: YeeterProps) => {
           instances={instances}
           type="dynamic"
           gravityScale={0}
+          // @ts-ignore
           ref={rigidBodies}
           canSleep={false}
         >
           <instancedMesh
             ref={cubes}
-            args={[null, null, cubeCount]}
+            args={[undefined, undefined, cubeCount]}
             dispose={null}
             onClick={(e) => {
               if (!rigidBodies.current) {
                 return;
               }
               e.stopPropagation();
+              //@ts-ignore
               let rigidBody = rigidBodies.current[e.instanceId];
               rigidBody?.applyImpulse(
                 {
