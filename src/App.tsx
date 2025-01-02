@@ -27,11 +27,55 @@ export const App = () => {
   }, []);
   return (
     <div className="w-full">
-      hello world!
-      state: { JSON.stringify(state) }
+      <header
+        className="
+          w-full bg-amber-300 border-b-2 border-amber-200 block
+          p-12 flex justify-center text-4xl color-white
+        "
+      >
+          🤖 Based asterai Agent
+      </header>
+      <div className="w-11/12 md:w-2/3 flex justify-center py-12 px-3 flex-wrap m-auto">
+        { !state && (
+          <div className="w-full text-center">
+            <p>
+              preparing & loading data from agent...
+            </p>
+            <br />
+            <img
+              className="inline"
+              alt="loading"
+              width="50px"
+              src="https://cdn.pixabay.com/animation/2023/05/02/04/29/04-29-06-428_512.gif"
+            />
+          </div>
+        ) }
+        { state && (
+          <>
+            <Card name="agent's wallet address" value={state.address} />
+            <Card name="agent's ETH balance" value={state.ethBalance} />
+          </>
+        ) }
+      </div>
     </div>
   )
 };
+
+type CardProps = {
+  value: string;
+  name: string;
+};
+
+const Card = ({ value, name }: CardProps) => (
+  <div className="w-full basis-full border-2 border-stone-400 my-2 rounded-xl">
+    <div className="p-3 text-xl truncate text-center">
+      { value }
+    </div>
+    <div className="bg-stone-400 p-4 text-sm text-stone-800 rounded-b text-center">
+      { name }
+    </div>
+  </div>
+);
 
 // const executeQuery = async (
 //   query: string,
@@ -60,10 +104,11 @@ const getFetchStatePrompt = (item: string) =>
   `Return the ${item} as plain text and nothing else.`;
 
 const fetchState = async (): Promise<State> => {
+  await new Promise(r => setTimeout(r, 1000));
   // TODO remove debug state.
   return {
     address: "0xD49088c6A8ADBBDBD743e8f57dbb34B6ADE3162A",
-    ethBalance: "0.0000"
+    ethBalance: "0.0001"
   };
   const [address, ethBalance] = await Promise.all([
     fetchAddress(),
