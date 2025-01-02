@@ -11,9 +11,8 @@ import { Card } from "./Card.tsx";
  *    the "Coinbase Wallet", "News" and "Dexscreener" plugins.
  * 4. Copy the app (agent) ID and public query ID.
  */
-const ASTERAI_APP_ID = "323f9a2d-adec-4617-b553-4c52b64e34df";
-// TODO remove placeholder (rotate)
-const ASTERAI_PUBLIC_QUERY_KEY = "03721d79-e718-4d57-a56c-7836b0320a7a";
+const ASTERAI_APP_ID = "SET_THIS_VALUE";
+const ASTERAI_PUBLIC_QUERY_KEY = "SET_THIS_SECRET_VALUE";
 
 export const client = new AsteraiClient({
   appId: ASTERAI_APP_ID,
