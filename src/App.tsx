@@ -30,7 +30,7 @@ export const App = () => {
       <header
         className="
           w-full bg-amber-300 border-b-2 border-amber-200 block
-          p-12 flex justify-center text-4xl color-white
+          p-12 flex justify-center text-xl md:text-4xl color-white
         "
       >
           🤖 asterai's Based Agent
